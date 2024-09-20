@@ -107,15 +107,22 @@ void ui_draw_slider(UI* ui, Slider* slider) {
     nvgText(ui->vg, slider->x, slider->y - 5, slider->label, NULL);
 
     nvgBeginPath(ui->vg);
-    nvgRect(ui->vg, slider->x, slider->y + 10, slider->width, slider->height);
+    nvgRoundedRect(ui->vg, slider->x, slider->y + 10, slider->width, slider->height, 6);
     nvgFillColor(ui->vg, nvgRGB(100, 100, 100));
     nvgFill(ui->vg);
 
     float normalizedValue = (*slider->value - slider->min) / (slider->max - slider->min);
-    float sliderPos = slider->x + normalizedValue * slider->width;
+    float sliderPos = (slider->x + normalizedValue * slider->width);
+
+    // clamp position
+    if (sliderPos < slider->x) {
+        sliderPos = slider->x + 20;
+    } else if (sliderPos > slider->x + slider->width) {
+        sliderPos = slider->x + slider->width - 20;
+    }
 
     nvgBeginPath(ui->vg);
-    nvgRect(ui->vg, sliderPos - 5, slider->y + 10, 10, slider->height);
+    nvgRoundedRect(ui->vg, sliderPos - 5, slider->y + 11, 10, slider->height - 2, 5);
     nvgFillColor(ui->vg, nvgRGB(70, 70, 70));
     nvgFill(ui->vg);
 

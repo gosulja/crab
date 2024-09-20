@@ -96,15 +96,20 @@ void drawVG() {
     nvgFillColor(vg, nvgRGB(255, 255, 255));
     nvgText(vg, 15, 15, debugText, NULL);
     
+    nvgBeginPath(vg);
+    nvgRoundedRect(vg, 10, 100, 220, 160, 8);
+    nvgFillColor(vg, nvgRGB(50, 50, 50));
+    nvgFill(vg);
+
     ui_draw(&state.ui);
 
     nvgEndFrame(vg);
 }
 
 void setup_debug_menu(State* state) {
-    ui_add_slider(&state->ui, 10, 100, 200, 20, "Camera Speed", 0.0f, 10.0f, &state->camera.speed);
-    ui_add_slider(&state->ui, 10, 150, 200, 20, "Camera Yaw", -180.0f, 180.0f, &state->camera.yaw);
-    ui_add_slider(&state->ui, 10, 200, 200, 20, "Camera Pitch", -89.0f, 89.0f, &state->camera.pitch);
+    ui_add_slider(&state->ui, 20, 120, 200, 20, "Camera Speed", 0.0f, 10.0f, &state->camera.speed);
+    ui_add_slider(&state->ui, 20, 170, 200, 20, "Camera Yaw", -180.0f, 180.0f, &state->camera.yaw);
+    ui_add_slider(&state->ui, 20, 220, 200, 20, "Camera Pitch", -89.0f, 89.0f, &state->camera.pitch);
 }
 
 
