@@ -54,7 +54,7 @@ static void draw_button(NVGcontext* vg, Button* button) {
     nvgFill(vg);
 
     nvgFontSize(vg, 20.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontFace(vg, "mono");
     nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgFillColor(vg, nvgRGBA(255, 255, 255, 255));
     nvgText(vg, button->x + button->width/2, button->y + button->height/2, button->label, NULL);
@@ -72,13 +72,13 @@ static void draw_menu(NVGcontext* vg, Menu* menu) {
     nvgFillColor(vg, nvgRGBA(60, 60, 60, 230));
     nvgFill(vg);
 
-    nvgFontSize(vg, 24.0f);
-    nvgFontFace(vg, "sans");
+    nvgFontSize(vg, 18.0f);
+    nvgFontFace(vg, "mono");
     nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgFillColor(vg, nvgRGBA(255, 255, 255, 255));
     nvgText(vg, menu->x + menu->width/2, menu->y + 20.0f, menu->title, NULL);
 
-    nvgFontSize(vg, 20.0f);
+    nvgFontSize(vg, 16.0f);
     for (int i = 0; i < menu->itemCount; i++) {
         float itemY = menu->y + 40.0f + i * MENU_ITEM_HEIGHT;
         nvgFillColor(vg, nvgRGBA(200, 200, 200, 255));
@@ -104,7 +104,8 @@ void ui_draw_slider(UI* ui, Slider* slider) {
     nvgFillColor(ui->vg, nvgRGB(255, 255, 255));
 
     nvgTextAlign(ui->vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-    nvgText(ui->vg, slider->x, slider->y - 5, slider->label, NULL);
+    nvgFontSize(ui->vg, 16.0f);
+    nvgText(ui->vg, slider->x, slider->y - 2, slider->label, NULL);
 
     nvgBeginPath(ui->vg);
     nvgRoundedRect(ui->vg, slider->x, slider->y + 10, slider->width, slider->height, 6);
@@ -128,7 +129,8 @@ void ui_draw_slider(UI* ui, Slider* slider) {
 
     nvgTextAlign(ui->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
     nvgFillColor(ui->vg, nvgRGB(255, 255, 255));
-    nvgText(ui->vg, slider->x + (slider->width / 2), slider->y + slider->height, fToString(slider->value), NULL);
+    nvgFontSize(ui->vg, 16.0f);
+    nvgText(ui->vg, slider->x + (slider->width / 2), slider->y + slider->height + 2, fToString(slider->value), NULL);
 }
 
 

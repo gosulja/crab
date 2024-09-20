@@ -1,0 +1,28 @@
+## Features
+[ x ] Basic Primitive Shapes (cubes, planes, ... etc)
+[ x ] Shader Support
+[ x ] Camera System
+[ x ] Textures
+[ x ] Basic Lighting
+
+[ x ] Object System [ TODO: Implement a more robust system for it. ]
+[   ] Spatial Partitioning
+
+[ x ] Keyboard and Mouse Input Listeners
+
+[   ] Collision Detection (basic AABB (Axis-Aligned Bounding Box))
+[   ] Gravity and Basic Dynamics
+
+[   ] Transform Animations (e.g. spin, move, scale objects over time with sin/cos)
+
+[   ] Sound Effects
+
+[ x ] UI System (can be extended)
+
+[ / ] Asset Loading (from disk)
+[   ] Shader and Texture Management (handle reloading and binding of shaders and textures)
+
+[ x ] Update/Render loop
+[ / ] State Management
+
+[ / ] Framebuffers (for bloom, tint .etc.)

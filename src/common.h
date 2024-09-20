@@ -8,4 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct {
+    vec3 min;
+    vec3 max;
+} AABB;
+
 #endif // !COMMON_H

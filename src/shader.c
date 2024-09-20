@@ -80,6 +80,8 @@ void s_load(Shader *shader, const char *vert_path, const char *frag_path)
 	glDeleteShader(vert_shader);
 	glDeleteShader(frag_shader);
 
+	printf("INFO: Successfully loaded shader file: %s, %s\n", vert_path, frag_path);
+
 	free(vert_code);
 	free(frag_code);
 }

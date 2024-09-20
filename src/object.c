@@ -1,4 +1,5 @@
 #include "object.h"
+#include "physics.h"
 #include "primitives.h"
 #include <math.h>
 #include <stdio.h>
@@ -113,6 +114,9 @@ void object_init(Object* obj, float* vertices, int vertexCount, unsigned int* in
     } else {
         obj->textureID = 0;
     }
+
+    glm_vec3_zero(obj->velocity);
+    update_aabb(obj, &obj->scale, &obj->aabb);
 }
 
 void object_create_cube(Object* obj, vec3 color, const char* texturePath) {
@@ -176,6 +180,52 @@ void object_update(Object* obj) {
     glm_rotate(obj->model, obj->rotation[1], (vec3){0.0f, 1.0f, 0.0f});
     glm_rotate(obj->model, obj->rotation[2], (vec3){0.0f, 1.0f, 1.0f});
     glm_scale(obj->model, obj->scale);
+}
+
+void object_draw_aabb(Object* obj, GLuint shader) {
+    glUseProgram(shader);
+    GLuint VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    
+    glBindVertexArray(VAO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    vec3 vertices[8] = {
+        {obj->aabb.min[0], obj->aabb.min[1], obj->aabb.min[2]},
+        {obj->aabb.max[0], obj->aabb.min[1], obj->aabb.min[2]},
+        {obj->aabb.max[0], obj->aabb.max[1], obj->aabb.min[2]},
+        {obj->aabb.min[0], obj->aabb.max[1], obj->aabb.min[2]},
+        {obj->aabb.min[0], obj->aabb.min[1], obj->aabb.max[2]},
+        {obj->aabb.max[0], obj->aabb.min[1], obj->aabb.max[2]},
+        {obj->aabb.max[0], obj->aabb.max[1], obj->aabb.max[2]},
+        {obj->aabb.min[0], obj->aabb.max[1], obj->aabb.max[2]}
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    GLubyte indices[] = {
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7
+    };
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    GLint modelLoc = glGetUniformLocation(shader, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (float*)obj->model);
+    
+    GLint colorLoc = glGetUniformLocation(shader, "color");
+    glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f);
+    
+    glDrawElements(GL_LINES, sizeof(indices), GL_UNSIGNED_BYTE, 0);
+    
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 }
 
 void object_load_from_obj(Object* obj, const char* objFilePath, vec3 color, const char* texturePath) {

@@ -11,21 +11,21 @@ typedef struct {
     vec3 rotation;
     vec3 scale;
     vec3 color;
+    vec3 velocity;
     mat4 model;
-
+    AABB aabb;
+    
     GLuint textureID;
-    float  textureScale;
+    float textureScale;
 } Object;
 
 void object_init(Object* obj, float* vertices, int vertexCount, unsigned int* indices, int indexCount, vec3 color, const char* texture);
-
 void object_create_cube(Object* obj, vec3 color, const char* texturePath);
 void object_create_plane(Object* obj, vec3 color, const char* texturePath);
 void object_load_from_obj(Object* obj, const char* filePath, vec3 color, const char* texturePath);
-
 void object_update(Object* obj);
 void object_draw(Object* obj, GLuint shader);
-
+void object_draw_aabb(Object* obj, GLuint shader);
 void object_cleanup(Object* obj);
 
 #endif

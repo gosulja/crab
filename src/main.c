@@ -97,9 +97,13 @@ void drawVG() {
     nvgText(vg, 15, 15, debugText, NULL);
     
     nvgBeginPath(vg);
-    nvgRoundedRect(vg, 10, 100, 220, 160, 8);
+    nvgRoundedRect(vg, 10, 70, 220, 190, 8);
     nvgFillColor(vg, nvgRGB(50, 50, 50));
     nvgFill(vg);
+
+    nvgFillColor(vg, nvgRGB(255, 255, 255));
+    nvgFontSize(vg, 18.0f);
+    nvgText(vg, 20, 80, "Debug Menu", NULL);
 
     ui_draw(&state.ui);
 
@@ -158,6 +162,9 @@ int main() {
     Shader shaderProgram;
     s_load(&shaderProgram, "../src/shaders/vert_default.glsl", "../src/shaders/frag_default.glsl");
 
+    Shader aabbProgram;
+    s_load(&aabbProgram, "../src/shaders/vert_aabb.glsl", "../src/shaders/frag_aabb.glsl");
+
     Object cube, baseplate, mesh, wedge, place, light, hut, gun;
     object_create_cube(&cube, (vec3){0.35f, 0.35f, 0.35f}, "../res/textures/sky-blue.png");
     object_create_plane(&baseplate, (vec3){0.15f, 0.15f, 0.15f}, "../res/textures/grid.png");
@@ -172,14 +179,14 @@ int main() {
 
     glm_vec3_copy(lightPos, light.position);
     glm_vec3_copy((vec3){0.2f, 0.2f, 0.2f}, light.scale);
-    glm_vec3_copy((vec3){0.0f, 1.0f, 0.0f}, cube.position);
     glm_vec3_copy((vec3){0.0f, 5.0f, 0.0f}, gun.position);
     glm_vec3_copy((vec3){0.2f, 0.2f, 0.2f}, gun.scale);
     glm_vec3_copy((vec3){0.3f, 0.3f, 0.3f}, hut.scale);
     glm_vec3_copy((vec3){5.0f, 0.0f, 5.0f}, hut.position);
     glm_vec3_copy((vec3){0.0f, -1.0f, 0.0f}, baseplate.position);
-    glm_vec3_copy((vec3){0.0f, 1.0f, 1.0f}, mesh.position);
-    glm_vec3_copy((vec3){0.0f, 1.0f, 6.0f}, wedge.position);
+    glm_vec3_copy((vec3){0.0f, 5.0f, 0.0f}, cube.position);
+    glm_vec3_copy((vec3){1.0f, 7.0f, 0.0f}, mesh.position);
+    glm_vec3_copy((vec3){-1.0f, 9.0f, 0.0f}, wedge.position);
     glm_vec3_copy((vec3){0.0f, 20.0f, 6.0f}, place.position);
     glm_vec3_copy((vec3){1.0f, 0.1f, 1.0f}, baseplate.scale);
 
