@@ -275,17 +275,14 @@ void object_load_from_obj(Object* obj, const char* objFilePath, vec3 color, cons
     glm_vec3_add(minBounds, maxBounds, center);
     glm_vec3_scale(center, 0.5f, center);
 
-    // Offset the object so it's centered at the origin
     for (unsigned int i = 0; i < vertexCount; i++) {
         vertices[i * 8 + 0] -= center[0];
         vertices[i * 8 + 1] -= center[1];
         vertices[i * 8 + 2] -= center[2];
     }
 
-    // Initialize the object with the loaded data
     object_init(obj, vertices, vertexCount, indices, indexCount, color, texturePath);
 
-    // Free the allocated memory
     free(vertices);
     free(indices);
     fast_obj_destroy(mesh);
@@ -306,6 +303,13 @@ void object_draw(Object* obj, GLuint shader) {
         LOG_ERROR("Failed to find uniform 'texture1'");
     } else {
         glUniform1i(texLoc, 0);
+    }
+
+    GLint hasTextureLoc = glGetUniformLocation(shader, "hasTexture");
+    if (hasTextureLoc == -1) {
+        LOG_ERROR("Failed to find uniform 'hasTexture'");
+    } else {
+        glUniform1i(hasTextureLoc, obj->textureID != 0);
     }
 
     GLint modelLoc = glGetUniformLocation(shader, "model");

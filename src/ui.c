@@ -1,9 +1,23 @@
 #include "ui.h"
+
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define BUTTON_CORNER_RADIUS 5.0f
 #define MENU_CORNER_RADIUS 10.0f
 #define MENU_ITEM_HEIGHT 30.0f
+
+char* fToString(float* v) {
+    char* buffer = (char*)malloc(32 * sizeof(char));
+    if (buffer == NULL) {
+        return NULL;
+    }
+
+    snprintf(buffer, 32, "%.2f", *v);
+
+    return buffer;
+}
 
 void ui_init(UI* ui, NVGcontext* vg) {
     ui->buttonCount = 0;
@@ -47,9 +61,9 @@ static void draw_button(NVGcontext* vg, Button* button) {
 }
 
 static void draw_menu(NVGcontext* vg, Menu* menu) {
-    // if (!menu->isOpen) return;
+    if (!menu->isOpen) return;
 
-    // For now, always show the menu
+    // For now, always hide the menu
 
     float totalHeight = menu->itemCount * MENU_ITEM_HEIGHT + 40.0f;
     
@@ -72,10 +86,59 @@ static void draw_menu(NVGcontext* vg, Menu* menu) {
     }
 }
 
+void ui_add_slider(UI* ui, float x, float y, float width, float height, const char* label, float minValue, float maxValue, float* value) {
+    if (ui->sliderCount < MAX_SLIDERS) {
+        Slider* slider = &ui->sliders[ui->sliderCount++];
+        slider->x = x;
+        slider->y = y;
+        slider->width = width;
+        slider->height = height;
+        slider->label = label;
+        slider->min = minValue;
+        slider->max = maxValue;
+        slider->value = value;
+    }
+}
+
+void ui_draw_slider(UI* ui, Slider* slider) {
+    nvgFillColor(ui->vg, nvgRGB(255, 255, 255));
+
+    nvgTextAlign(ui->vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+    nvgText(ui->vg, slider->x, slider->y - 5, slider->label, NULL);
+
+    nvgBeginPath(ui->vg);
+    nvgRect(ui->vg, slider->x, slider->y + 10, slider->width, slider->height);
+    nvgFillColor(ui->vg, nvgRGB(100, 100, 100));
+    nvgFill(ui->vg);
+
+    float normalizedValue = (*slider->value - slider->min) / (slider->max - slider->min);
+    float sliderPos = slider->x + normalizedValue * slider->width;
+
+    nvgBeginPath(ui->vg);
+    nvgRect(ui->vg, sliderPos - 5, slider->y + 10, 10, slider->height);
+    nvgFillColor(ui->vg, nvgRGB(70, 70, 70));
+    nvgFill(ui->vg);
+
+    nvgTextAlign(ui->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+    nvgFillColor(ui->vg, nvgRGB(255, 255, 255));
+    nvgText(ui->vg, slider->x + (slider->width / 2), slider->y + slider->height, fToString(slider->value), NULL);
+}
+
+
+
 void ui_draw(UI* ui) {
     for (int i = 0; i < ui->buttonCount; i++) {
         draw_button(ui->vg, &ui->buttons[i]);
     }
+
+    for (int i = 0; i < ui->sliderCount; i++) {
+        ui_draw_slider(ui, &ui->sliders[i]);
+    }
+
+    // for (int i = 0; i < ui->textInputCount; i++) {
+    //     ui_draw_slider(ui, &ui->textInputs[i]);
+    // }
+
     draw_menu(ui->vg, &ui->menu);
 }
 
@@ -89,6 +152,30 @@ void ui_handle_mouse(UI* ui, float mouseX, float mouseY, bool mousePressed) {
         
         if (isInside && mousePressed && button->onClick) {
             button->onClick();
+        }
+    }
+
+    for (int i = 0; i < ui->sliderCount; i++) {
+        Slider* slider = &ui->sliders[i];
+
+        bool isInside = mouseX >= slider->x && mouseX <= slider->x + slider->width &&
+                        mouseY >= slider->y && mouseY <= slider->y + slider->height + 20;
+
+        if (isInside && mousePressed) {
+            slider->isDragging = true;
+        }
+
+        if (slider->isDragging) {
+            float newValue = slider->min + ((mouseX - slider->x) / slider->width) * (slider->max - slider->min);
+            
+            if (newValue < slider->min) newValue = slider->min;
+            if (newValue > slider->max) newValue = slider->max;
+
+            *slider->value = newValue;
+        }
+
+        if (!mousePressed) {
+            slider->isDragging = false;
         }
     }
 

@@ -3,6 +3,8 @@
 extern float lastX;
 extern float lastY;
 extern bool firstMouse;
+static bool middleMousePressed = false;
+static double lastMiddleX, lastMiddleY;
 
 void process_input(GLFWwindow* window, State* state, float deltaTime) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -22,6 +24,18 @@ void process_input(GLFWwindow* window, State* state, float deltaTime) {
         glfwGetCursorPos(window, &xpos, &ypos);
         ui_handle_mouse(&state->ui, xpos, ypos, true);
     }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
+        if (!middleMousePressed) {
+            middleMousePressed = true;
+            glfwGetCursorPos(window, &lastMiddleX, &lastMiddleY);
+            lastX = lastMiddleX;
+            lastY = lastMiddleY;
+        }
+    } else if (middleMousePressed) {
+        middleMousePressed = false;
+        glfwGetCursorPos(window, &lastX, &lastY);
+    }
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -30,20 +44,25 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
+        lastMiddleX = xpos;
+        lastMiddleY = ypos;
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    if (middleMousePressed) {
+        float xoffset = xpos - lastMiddleX;
+        float yoffset = lastMiddleY - ypos;
 
-    lastX = xpos;
-    lastY = ypos;
+        lastMiddleX = xpos;
+        lastMiddleY = ypos;
+
+        camera_process_mouse_movement(&state.camera, xoffset, yoffset, GL_TRUE);
+    } else {
+        lastX = xpos;
+        lastY = ypos;
+    }
 
     ui_handle_mouse(&state.ui, xpos, ypos, false);
-
-    if (!state.ui.menu.isOpen) {
-        camera_process_mouse_movement(&state.camera, xoffset, yoffset, GL_TRUE);
-    }
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -51,17 +70,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     camera_process_mouse_scroll(&state.camera, yoffset);
 }
 
-void toggle_cursor(GLFWwindow* window) {
-    static int cursorMode = GLFW_CURSOR_DISABLED;
-    cursorMode = (cursorMode == GLFW_CURSOR_DISABLED) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
-    glfwSetInputMode(window, GLFW_CURSOR, cursorMode);
-    firstMouse = true;
-}
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
-        toggle_cursor(window);
-    }
+    
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {

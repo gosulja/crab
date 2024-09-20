@@ -20,6 +20,7 @@
 State state;
 NVGcontext* vg;
 GLuint fontNormal;
+GLuint fontMono;
 float lastX = WINDOW_WIDTH / 2.0f;
 float lastY = WINDOW_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -28,6 +29,9 @@ float lastFrame = 0.0f;
 float fps = 0.0f;
 float lastTime = 0.0f;
 int frameCount = 0;
+
+vec3 lightPos = {4.5f, 3.0f, 4.5f};
+vec3 lightColor = {1.0f, 1.0f, 1.0f};
 
 bool toggle_menu(void) {
     printf("Toggling menu?\n");
@@ -53,6 +57,12 @@ void initVG() {
         exit(1);
     }
 
+    fontMono = nvgCreateFont(vg, "mono", "../res/fonts/ProggyClean.ttf");
+    if (fontMono == -1) {
+        fprintf(stderr, "Failed to load font.\n");
+        exit(1);
+    }
+
     ui_init(&state.ui, vg);
 }
 
@@ -66,19 +76,37 @@ void cleanupVG() {
 void drawVG() {
     nvgBeginFrame(vg, WINDOW_WIDTH, WINDOW_HEIGHT, 1.0f);
 
-    // Draw FPS
-    char fpsText[64];
-    snprintf(fpsText, sizeof(fpsText), "FPS: %.f", fps);
-    nvgBeginPath(vg);
-    nvgFontSize(vg, 20.0f);
-    nvgFontFace(vg, "sans");
+    char debugText[256];
+    snprintf(debugText, sizeof(debugText), 
+             "fps: %.2f - "
+             "camera pos: (%.2f, %.2f, %.2f) - "
+             "camera yaw: %.2f - "
+             "camera pitch: %.2f - "
+             "dt: %.4f",
+             fps,
+             state.camera.position[0], state.camera.position[1], state.camera.position[2],
+             state.camera.yaw,
+             state.camera.pitch,
+             deltaTime);
+
+    nvgFontSize(vg, 16.0f);
+    nvgFontFace(vg, "mono");
+    nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+
     nvgFillColor(vg, nvgRGB(255, 255, 255));
-    nvgText(vg, 10, 30, fpsText, NULL);
+    nvgText(vg, 15, 15, debugText, NULL);
     
     ui_draw(&state.ui);
 
     nvgEndFrame(vg);
 }
+
+void setup_debug_menu(State* state) {
+    ui_add_slider(&state->ui, 10, 100, 200, 20, "Camera Speed", 0.0f, 10.0f, &state->camera.speed);
+    ui_add_slider(&state->ui, 10, 150, 200, 20, "Camera Yaw", -180.0f, 180.0f, &state->camera.yaw);
+    ui_add_slider(&state->ui, 10, 200, 200, 20, "Camera Pitch", -89.0f, 89.0f, &state->camera.pitch);
+}
+
 
 void test() {
     printf("HELLO WORLD!\n");
@@ -113,7 +141,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         fprintf(stderr, "Failed to initialize GLAD\n");
@@ -125,16 +153,25 @@ int main() {
     Shader shaderProgram;
     s_load(&shaderProgram, "../src/shaders/vert_default.glsl", "../src/shaders/frag_default.glsl");
 
-    Object cube, baseplate, mesh, wedge, place;
+    Object cube, baseplate, mesh, wedge, place, light, hut, gun;
     object_create_cube(&cube, (vec3){0.35f, 0.35f, 0.35f}, "../res/textures/sky-blue.png");
     object_create_plane(&baseplate, (vec3){0.15f, 0.15f, 0.15f}, "../res/textures/grid.png");
     object_load_from_obj(&mesh, "../res/objs/test.obj", (vec3){0.5f, 0.5f, 0.2f}, "../res/textures/sky-blue.png");
     object_load_from_obj(&wedge, "../res/objs/wedge.obj", (vec3){0.7, 0.2f, 1.0f}, "../res/textures/sky-blue.png");
     object_load_from_obj(&place, "../res/objs/place.obj", (vec3){0.1, 0.1f, 0.1f}, "../res/textures/sky-blue.png");
+    object_load_from_obj(&hut, "../res/objs/hut.obj", (vec3){0.1, 0.1f, 0.1f}, "../res/textures/wood.png");
+    object_load_from_obj(&gun, "../res/objs/gun.obj", (vec3){0.1, 0.1f, 0.1f}, NULL);
+    object_create_cube(&light, lightColor, NULL);
 
     baseplate.textureScale = 10.0f;
 
+    glm_vec3_copy(lightPos, light.position);
+    glm_vec3_copy((vec3){0.2f, 0.2f, 0.2f}, light.scale);
     glm_vec3_copy((vec3){0.0f, 1.0f, 0.0f}, cube.position);
+    glm_vec3_copy((vec3){0.0f, 5.0f, 0.0f}, gun.position);
+    glm_vec3_copy((vec3){0.2f, 0.2f, 0.2f}, gun.scale);
+    glm_vec3_copy((vec3){0.3f, 0.3f, 0.3f}, hut.scale);
+    glm_vec3_copy((vec3){5.0f, 0.0f, 5.0f}, hut.position);
     glm_vec3_copy((vec3){0.0f, -1.0f, 0.0f}, baseplate.position);
     glm_vec3_copy((vec3){0.0f, 1.0f, 1.0f}, mesh.position);
     glm_vec3_copy((vec3){0.0f, 1.0f, 6.0f}, wedge.position);
@@ -146,8 +183,12 @@ int main() {
     state_add_object(&state, &mesh);
     state_add_object(&state, &wedge);
     state_add_object(&state, &place);
+    state_add_object(&state, &light);
+    state_add_object(&state, &hut);
+    state_add_object(&state, &gun);
 
     initVG();
+    setup_debug_menu(&state);
 
     state.ui.menu.x = 10;
     state.ui.menu.y = 60;
@@ -189,9 +230,6 @@ int main() {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         s_use(&shaderProgram);
-
-        vec3 lightPos = {0.0f, 50.0f, 0.0f};
-        vec3 lightColor = {1.0f, 1.0f, 1.0f};
 
         mat4 view, projection;
         camera_get_view_matrix(&state.camera, view);
